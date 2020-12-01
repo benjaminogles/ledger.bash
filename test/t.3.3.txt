@@ -1,0 +1,6 @@
+bal --depth 2 --flat
+              $-2.00  Assets:Bank
+               $1.00  Expenses:Category1
+               $1.00  Expenses:Category2
+--------------------
+                0.00

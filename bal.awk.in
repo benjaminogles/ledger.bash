@@ -1,0 +1,30 @@
+
+NF == 4 {
+  cents = $4
+  levels = split($3, accounts, /:/)
+  for (i = 1; i <= levels; i++) {
+    account = ""
+    for (j = 1; j <= i; j++) {
+      if (account)
+        account = account ":"
+      account = account accounts[j]
+    }
+    bal[account] += cents
+  }
+  total += cents
+  next
+}
+
+{ print "bal.awk: skipping line " NR " with " NF " fields and bad format: " $0 }
+
+END {
+  count = 0
+  command = "sort"
+  for (acct in bal) {
+    count++
+    print acct, to_dollars(bal[acct]) | command
+  }
+  close(command)
+  if (count)
+    print to_dollars(total)
+}

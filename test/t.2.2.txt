@@ -1,0 +1,7 @@
+bal --flat
+             $-13.31  Assets:Bank:Checking1
+             $-14.43  Assets:Bank:Checking2
+              $13.31  Expenses:Category:Nested1
+              $14.43  Expenses:Category:Nested2
+--------------------
+                0.00

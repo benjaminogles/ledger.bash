@@ -1,0 +1,7 @@
+
+2019/01/01 Payee 1
+    Expenses:Category1:Nested:DoubleNested  $1
+    Assets:Bank
+2019/01/02 Payee 2
+    Expenses:Category2:Nested  $1
+    Assets:Bank

@@ -1,0 +1,5 @@
+bal
+              $-1.00  Assets:Bank
+               $1.00  Expenses:Category
+--------------------
+                0.00

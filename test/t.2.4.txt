@@ -1,0 +1,5 @@
+bal --depth 2
+             $-27.74  Assets:Bank
+              $27.74  Expenses:Category
+--------------------
+                0.00

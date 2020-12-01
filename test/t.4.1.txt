@@ -1,0 +1,6 @@
+check test/t.4.csv
+Potentially missing records
+2019/01/01,Description,-1.00
+2019/01/05,Description,-1.00
+Potentially duplicated records
+2019/01/03,Description,-1.00

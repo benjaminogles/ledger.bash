@@ -1,0 +1,8 @@
+bal
+              $-2.00  Assets:Bank
+               $2.00  Expenses
+               $1.00    Category1
+               $1.00      Nested:DoubleNested
+               $1.00    Category2:Nested
+--------------------
+                0.00
