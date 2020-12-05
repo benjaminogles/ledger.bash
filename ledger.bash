@@ -284,12 +284,13 @@ do
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;
+    *.csv) bank_csv = "$1" ;;
     *)
-      if [[ -z "$arguments" ]]
+      if [[ -z "$accounts" ]]
       then
-        arguments="$1"
+        accounts="$1"
       else
-        arguments="$arguments|$1"
+        accounts="$accounts|$1"
       fi
       ;;
   esac
@@ -297,17 +298,17 @@ do
 done
 
 case "$report" in
-  bal) accounts="$arguments"; bal_report ;;
-  rawbal) accounts="$arguments"; bal_raw_report ;;
-  csv) accounts="$arguments"; transactions_report ;;
-  rawcsv) accounts="$arguments"; transactions_raw_report ;;
-  db) accounts="$arguments"; sqlite3 $(create_sqlite_db) ;;
-  bankdb) bank_csv="$arguments"; sqlite3 $(bank_sqlite_db) ;;
-  import) bank_csv="$arguments"; import_bank_csv $(pick_account) ;;
-  check) bank_csv="$arguments"; check_bank_csv ;;
-  accounts) accounts="$arguments"; accounts_report ;;
-  payees) accounts="$arguments"; payees_report ;;
-  bankcsv) bank_csv="$arguments"; preprocess_bank_csv ;;
+  bal) bal_report ;;
+  rawbal) bal_raw_report ;;
+  csv) transactions_report ;;
+  rawcsv) transactions_raw_report ;;
+  db) sqlite3 $(create_sqlite_db) ;;
+  bankdb) sqlite3 $(bank_sqlite_db) ;;
+  import) import_bank_csv $(pick_account) ;;
+  check) check_bank_csv ;;
+  accounts) accounts_report ;;
+  payees) payees_report ;;
+  bankcsv) preprocess_bank_csv ;;
   *) usage
 esac
 
