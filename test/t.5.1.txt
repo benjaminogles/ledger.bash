@@ -1,0 +1,9 @@
+bal
+      $-4,756,000.00  Assets:Bank
+       $4,756,000.00  Expenses
+           $1,000.00    Category1
+          $25,000.00    Category2
+         $330,000.00    Category3
+       $4,400,000.00    Category4
+--------------------
+                0.00
