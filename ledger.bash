@@ -10,6 +10,7 @@ depth=0
 budget=0
 plot=0
 nototal=0
+nopretty=0
 accounts=""
 start_date=""
 end_date=""
@@ -118,7 +119,7 @@ bal_raw_report() {
 }
 
 bal_report() {
-  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth"
+  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth" -v nopretty=$nopretty
 }
 
 normalize_date() {
@@ -133,12 +134,33 @@ normalize_date() {
   fi
 }
 
-monthly_bal_report() {
-  echo ''
+monthly_bal_report_slow() {
+  flat=1
+  nototal=1
+  if [[ -z "$start_date" ]]
+  then
+    start_date=$(all_transactions | transactions_col 1 | head -n 1)
+  else
+    start_date="$(normalize_date "$start_date")"
+  fi
+  start_date=$(date -d "$start_date" +'%Y/%m/01')
+  outfile=$(fresh_file /tmp/month.dat)
+  report_results=$(fresh_file /tmp/monthly.dat)
+  echo "placeholder" > $outfile
+  while [[ -s $outfile ]]
+  do
+    end_date="$(date -d "$start_date +1months" +'%Y/%m/%d')"
+    disp_date="$(date -d "$start_date" +'%Y/%m')"
+    # TODO awk script that chunks months into separate files
+    # TODO or awk script that echos blank lines in between months and make bal_report handle those
+    bal_report | awk '{print $2, $1}' | sed "s|^|$disp_date |" | tee $outfile >> $report_results
+    start_date="$end_date"
+  done
+  sort -k 2,2 -k 1 $report_results
 }
 
 preprocess_bank_csv() {
-  thresh=$(all_transactions | awk -F, '{print $1}' | tail -n 1)
+  thresh=$(all_transactions | transactions_col 1 | tail -n 1)
   awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${2:-$thresh}" "$1"
 }
 
@@ -305,6 +327,7 @@ do
     --start) start_date="$2"; shift ;;
     --end) end_date="$2"; shift ;;
     --no-total) nototal=1 ;;
+    --no-pretty) nopretty=1 ;;
     *.csv) bank_csv="$1" ;;
     *)
       if [[ -z "$accounts" ]]
@@ -340,6 +363,7 @@ case "$report" in
   accounts) accounts_report ;;
   payees) payees_report ;;
   bankcsv) preprocess_bank_csv "$bank_csv" ;;
+  monthly) monthly_bal_report_slow ;;
   *) usage
 esac
 
