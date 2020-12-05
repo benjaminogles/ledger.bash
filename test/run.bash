@@ -11,7 +11,7 @@ do
   args=$(head -n 1 $t)
   in="${t%.*.txt}.ledger"
   tail -n +2 $t > $TMP_EXPECTED
-  LEDGER_FILE=$in ./ledger.bash $args > $TMP_ACTUAL
+  LEDGER_BASH_FILE=$in ./ledger.bash $args > $TMP_ACTUAL
   if ! diff --strip-trailing-cr $TMP_ACTUAL $TMP_EXPECTED
   then
     echo "Failed $t"

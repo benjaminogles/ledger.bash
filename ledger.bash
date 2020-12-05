@@ -12,6 +12,7 @@ plot=0
 accounts=""
 bank_csv=""
 import_results=""
+ledger_file=""
 
 if ! declare -f assign_payee_and_account > /dev/null
 then
@@ -60,7 +61,7 @@ pick() {
 }
 
 transactions_raw_report() {
-  awk -f transactions.awk -v OFS=, -v real="$1" -v budget="$2" -v filter="$3" $LEDGER_FILE | sort -k 1 -t ,
+  awk -f transactions.awk -v OFS=, -v real="$1" -v budget="$2" -v filter="$3" "$ledger_file" | sort -k 1 -t ,
 }
 
 all_transactions() {
@@ -294,6 +295,16 @@ do
   esac
   shift
 done
+
+if [[ ! -z "$LEDGER_BASH_FILE" ]]
+then
+  ledger_file="$LEDGER_BASH_FILE"
+else
+  ledger_dir=${LEDGER_DIR:-$HOME/Documents/finance}
+  ledger_ext=${LEDGER_EXT:-.in}
+  ledger_file=$(fresh_file /tmp/ledger.dat)
+  find "$ledger_dir" -name "*$ledger_ext" -exec cat '{}' > $ledger_file \;
+fi
 
 case "$report" in
   bal) bal_report ;;
