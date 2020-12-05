@@ -122,10 +122,10 @@ bal_report() {
 }
 
 normalize_date() {
-  if [[ "$1" =~ \d\d\d\d ]]
+  if [[ "$1" =~ [0-9]{4}$ ]]
   then
     echo "$1/01/01"
-  elif [[ "$1" =~ \d\d\d\d\/\d\d ]]
+  elif [[ "$1" =~ [0-9]{4}\/[0-9]{2}$ ]]
   then
     echo "$1/01"
   else
