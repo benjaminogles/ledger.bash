@@ -9,7 +9,6 @@ flat=0
 depth=0
 budget=0
 plot=0
-arguments=""
 accounts=""
 bank_csv=""
 import_results=""
@@ -120,7 +119,7 @@ bal_report() {
 
 preprocess_bank_csv() {
   thresh=$(all_transactions | awk -F, '{print $1}' | tail -n 1)
-  awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${1:-$thresh}" "$arguments"
+  awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${2:-$thresh}" "$1"
 }
 
 fresh_file() {
@@ -153,7 +152,7 @@ create_sqlite_db() {
 bank_sqlite_db() {
   db=$(create_sqlite_db)
   bank_transactions=$(fresh_file /tmp/bank.csv)
-  preprocess_bank_csv 0 > $bank_transactions
+  preprocess_bank_csv "$1" 0 > $bank_transactions
   sqlite3 $db <<< "
 create table bank_transactions (date text not null, description text not null, amount text not null);
 .separator ,
@@ -163,31 +162,30 @@ echo $db
 }
 
 check_bank_csv() {
-  db=$(bank_sqlite_db)
-  missing=$(fresh_file /tmp/ledger.missing)
-  duplicates=$(fresh_file /tmp/ledger.duplicates)
+  db=$(bank_sqlite_db "$1")
+  bank_account="$2"
+  problems=$(fresh_file /tmp/ledger.problems)
   sqlite3 $db <<< "
+create table combined (date text not null, amount real not null);
+create table bank_combined (date text not null, amount real not null);
+insert into combined select date, sum(cast(amount as real)) from transactions where account = '$bank_account' group by date;
+insert into bank_combined select date, sum(cast(amount as real)) from bank_transactions group by date;
 .mode csv
-.output $missing
-select b.date, b.description, b.amount from bank_transactions b where not exists (
-  select 1 from transactions where date=b.date and amount=b.amount
-  );
-.output $duplicates
-select date, description, amount from (
-  select count(*) as c, b.date, b.description, b.amount from
-    bank_transactions b inner join transactions t on b.date = t.date and b.amount = t.amount
-    group by b.rowid having c > 1
+.output $problems
+.headers on
+select Date, Expected, Actual from (
+  select
+    b.date as Date,
+    b.amount as Expected,
+    case t.amount when null then 0 else t.amount end as Actual
+  from bank_combined b left outer join combined t on b.date = t.date
+  where abs(b.amount - t.amount) > .01 or t.date is null
   );
 "
-  if [[ -s $missing ]]
+  if [[ -s $problems ]]
   then
-    echo Potentially missing records
-    cat $missing
-  fi
-  if [[ -s $duplicates ]]
-  then
-    echo Potentially duplicated records
-    cat $duplicates
+    echo Potential problems with $bank_account
+    cat $problems | column -t -s,
   fi
 }
 
@@ -246,15 +244,15 @@ EOF
 }
 
 import_bank_csv() {
-  bank_account="$1"
   bank_transactions=$(fresh_file /tmp/bank.csv)
-  preprocess_bank_csv > $bank_transactions
+  preprocess_bank_csv "$1" > $bank_transactions
   import_results=$(fresh_file ledger-imported.dat 1)
+  bank_account="$2"
   while IFS=, read dt desc amt
   do
     import_one "$dt" "$desc" "$amt"
   done < $bank_transactions
-  check_bank_csv
+  check_bank_csv "$1"
 }
 
 usage() {
@@ -284,7 +282,7 @@ do
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;
-    *.csv) bank_csv = "$1" ;;
+    *.csv) bank_csv="$1" ;;
     *)
       if [[ -z "$accounts" ]]
       then
@@ -301,14 +299,14 @@ case "$report" in
   bal) bal_report ;;
   rawbal) bal_raw_report ;;
   csv) transactions_report ;;
-  rawcsv) transactions_raw_report ;;
+  rawcsv) default_transactions ;;
   db) sqlite3 $(create_sqlite_db) ;;
-  bankdb) sqlite3 $(bank_sqlite_db) ;;
-  import) import_bank_csv $(pick_account) ;;
-  check) check_bank_csv ;;
+  bankdb) sqlite3 $(bank_sqlite_db "$bank_csv") ;;
+  import) import_bank_csv "$bank_csv" $(pick_account) ;;
+  check) check_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
-  bankcsv) preprocess_bank_csv ;;
+  bankcsv) preprocess_bank_csv "$bank_csv" ;;
   *) usage
 esac
 
