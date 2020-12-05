@@ -25,6 +25,6 @@ END {
     print acct, to_dollars(bal[acct]) | command
   }
   close(command)
-  if (count)
+  if (count && !nototal)
     print to_dollars(total)
 }

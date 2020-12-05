@@ -9,6 +9,7 @@ flat=0
 depth=0
 budget=0
 plot=0
+nototal=0
 accounts=""
 start_date=""
 end_date=""
@@ -113,7 +114,7 @@ transactions_report() {
 }
 
 bal_raw_report() {
-  default_transactions | awk -F, -f bal.awk
+  default_transactions | awk -f bal.awk -F, -v nototal="$nototal"
 }
 
 bal_report() {
@@ -287,6 +288,7 @@ do
     --depth) depth="$2"; shift ;;
     --start) start_date="$2"; shift ;;
     --end) end_date="$2"; shift ;;
+    --no-total) nototal=1 ;;
     *.csv) bank_csv="$1" ;;
     *)
       if [[ -z "$accounts" ]]
