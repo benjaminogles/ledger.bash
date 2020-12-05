@@ -1,0 +1,3 @@
+csv --start 2019/01/01 --end 2019/01/02
+2019/01/01,Payee,Assets,-1.00
+2019/01/01,Payee,Expenses,1.00
