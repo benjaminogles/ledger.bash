@@ -109,7 +109,7 @@ confirm_payee_and_account() {
 }
 
 transactions_report() {
-  default_transactions | awk -f cents-to-dollars.awk -F, -v OFS=, -v col=4 -v pretty=${1:-1}
+  default_transactions | awk -f cents-to-dollars.awk -F, -v OFS=, -v col=4
 }
 
 bal_raw_report() {
@@ -144,7 +144,7 @@ fresh_file() {
 create_sqlite_db() {
   db=$(fresh_file /tmp/ledger.db)
   sqlite3 $db 'create table transactions (date text not null, payee text not null, account text not null, amount text not null);'
-  transactions_report 0 > /tmp/ledger.csv
+  transactions_report > /tmp/ledger.csv
   sqlite3 $db <<< "
 .separator ,
 .import /tmp/ledger.csv transactions

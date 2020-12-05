@@ -1,11 +1,8 @@
 
 function pretty_field(f, s) {
   s = $f
-  if (f == col) {
+  if (f == col)
     s = to_dollars(s)
-    if (pretty)
-      s = pretty_dollars(s) 
-  }
   return s
 }
 
