@@ -72,7 +72,7 @@ all_transactions() {
 }
 
 default_transactions() {
-  transactions_raw_report $real $budget "$accounts" "$start_date" "$end_date"
+  transactions_raw_report $real $budget "$accounts" "$(normalize_date "$start_date")" "$(normalize_date "$end_date")"
 }
 
 transactions_col() {
@@ -119,6 +119,22 @@ bal_raw_report() {
 
 bal_report() {
   bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth"
+}
+
+normalize_date() {
+  if [[ "$1" =~ \d\d\d\d ]]
+  then
+    echo "$1/01/01"
+  elif [[ "$1" =~ \d\d\d\d\/\d\d ]]
+  then
+    echo "$1/01"
+  else
+    echo "$1"
+  fi
+}
+
+monthly_bal_report() {
+  echo ''
 }
 
 preprocess_bank_csv() {

@@ -37,7 +37,7 @@ NF == 4 {
 
   flat_override = 0
 
-  printf "%20s%*s%s\n", sprintf("$%0.2f", amount), 2 * indent, "", account
+  printf "%20s%*s%s\n", pretty_dollars(amount), 2 * indent, "", account
 }
 
 # total
