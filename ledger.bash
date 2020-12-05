@@ -9,7 +9,6 @@ flat=0
 depth=0
 budget=0
 plot=0
-fix=0
 arguments=""
 accounts=""
 bank_csv=""
@@ -274,7 +273,6 @@ usage() {
   echo "  --real         Don't print budget accounts"
   echo "  --budget       Only print budget accounts"
   echo "  --plot         Plot report"
-  echo "  --fix          Try to fix problems found during import"
   exit 1
 }
 
@@ -286,7 +284,6 @@ do
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;
-    --fix) fix=1 ;;
     *)
       if [[ -z "$arguments" ]]
       then
