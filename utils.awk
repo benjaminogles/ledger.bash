@@ -86,3 +86,8 @@ function pretty_dollars(s, pos) {
   return "$" s
 }
 
+function date_to_num(date) {
+  gsub(/\//, "", date)
+  return int(date)
+}
+

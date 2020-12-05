@@ -10,6 +10,8 @@ depth=0
 budget=0
 plot=0
 accounts=""
+start_date=""
+end_date=""
 bank_csv=""
 import_results=""
 ledger_file=""
@@ -61,15 +63,15 @@ pick() {
 }
 
 transactions_raw_report() {
-  awk -f transactions.awk -v OFS=, -v real="$1" -v budget="$2" -v filter="$3" "$ledger_file" | sort -k 1 -t ,
+  awk -f transactions.awk -v OFS=, -v real="$1" -v budget="$2" -v filter="$3" -v start="$4" -v end="$5" "$ledger_file" | sort -k 1 -t ,
 }
 
 all_transactions() {
-  transactions_raw_report 0 0 ""
+  transactions_raw_report 0 0 "" "" ""
 }
 
 default_transactions() {
-  transactions_raw_report $real $budget "$accounts"
+  transactions_raw_report $real $budget "$accounts" "$start_date" "$end_date"
 }
 
 transactions_col() {
@@ -283,6 +285,8 @@ do
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;
+    --start) start_date="$2"; shift ;;
+    --end) end_date="$2"; shift ;;
     *.csv) bank_csv="$1" ;;
     *)
       if [[ -z "$accounts" ]]

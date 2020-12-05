@@ -7,6 +7,10 @@ function output_final(date, payee, account, amount) {
   account = pretty_account(account)
   if (filter && account !~ filter)
     return
+  if (start && date_to_num(start) > date_to_num(date))
+    return
+  if (end && date_to_num(end) <= date_to_num(date))
+    return
   print date, payee, account, int(amount)
 }
 
@@ -56,6 +60,14 @@ function transition(nxt) {
 BEGIN {
   rule_idx = -1
   state = "transaction"
+  if (start && length(start) == 4)
+    start = start "/01/01"
+  else if (start && length(start) == 7)
+    start = start "/01"
+  if (end && length(end) == 4)
+    end = end "/01/01"
+  else if (end && length(end) == 7)
+    end = end "/01"
 }
 
 # comments
