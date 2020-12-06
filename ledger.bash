@@ -4,7 +4,6 @@ shopt -s nocasematch
 
 report="$1"
 shift
-real=0
 flat=0
 depth=0
 budget=0
@@ -69,7 +68,7 @@ pick() {
 }
 
 transactions_raw_report() {
-  awk -f transactions.awk -v OFS=, -v real="$1" -v budget="$2" -v filter="$3" -v start="$4" -v end="$5" "$ledger_file" | sort -k 1 -t ,
+  awk -f transactions.awk -v OFS=, -v budget="$1" -v filter="$2" -v start="$3" -v end="$4" "$ledger_file" | sort -k 1 -t ,
 }
 
 all_transactions() {
@@ -77,7 +76,7 @@ all_transactions() {
 }
 
 default_transactions() {
-  transactions_raw_report $real $budget "$accounts" "$(normalize_date "$start_date")" "$(normalize_date "$end_date")"
+  transactions_raw_report $budget "$accounts" "$(normalize_date "$start_date")" "$(normalize_date "$end_date")"
 }
 
 transactions_col() {
@@ -297,8 +296,7 @@ usage() {
   echo "Options"
   echo "  --flat         Flatten account tree in bal report"
   echo "  --depth <num>  Limit depth of account tree in bal report"
-  echo "  --real         Don't print budget accounts"
-  echo "  --budget       Only print budget accounts"
+  echo "  --budget       Print budget accounts"
   echo "  --plot         Plot report"
   exit 1
 }
@@ -307,7 +305,6 @@ while [[ ! -z "$1" ]]
 do
   case "$1" in
     --flat) flat=1 ;;
-    --real) real=1 ;;
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;

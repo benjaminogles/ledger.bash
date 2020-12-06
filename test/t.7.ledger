@@ -1,0 +1,23 @@
+
+= ^Income
+    [Envelope:Savings]  -.25
+    [Envelope:Spending] -.75
+
+= ^Expenses
+    [Envelope:$account] -1.0
+
+2020/01/01 Salary
+    Bank $100
+    Income
+
+2020/01/01 Budget
+    [Envelope:Expenses:Food] $50
+    [Envelope:Spending]
+
+2020/01/01 Groceries
+    Expenses:Food $5
+    Bank
+
+2020/01/01 Doctor
+    Expenses:Medical $15
+    Bank

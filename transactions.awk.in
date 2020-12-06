@@ -1,6 +1,6 @@
 
 function output_final(date, payee, account, amount) {
-  if (real && is_budget_account(account))
+  if (!budget && is_budget_account(account))
     return
   if (budget && !is_budget_account(account))
     return
@@ -22,14 +22,15 @@ function apply_rules(date, payee, account, amount) {
     delete bamounts
     for (j = 0; j < rule_sizes[i]; j++) {
       bamounts[j] = int(amount * rule_multipliers[i, j])
-      btotal += bamounts[j]
+      btotal += abs(bamounts[j])
     }
-    if (btotal != amount)
-      bamounts[0] += (amount - btotal)
+    expected = abs(amount)
+    if (btotal != expected)
+      bamounts[0] += (expected - btotal)
     for (j = 0; j < rule_sizes[i]; j++) {
       baccount = rule_accounts[i, j]
       gsub(/\$account/, account, baccount)
-      output_final(date, payee, baccount, -bamounts[j])
+      output_final(date, payee, baccount, bamounts[j])
     }
   }
 }
@@ -44,8 +45,8 @@ function transition(nxt) {
     mult_total = 0
     for (i = 0; i < rule_size; i++)
       mult_total += rule_multipliers[rule_idx, i]
-    if (!approx(mult_total, 1.0))
-      die("multipliers for budget rule " rule_patterns[rule_idx] " do not sum to 1.0")
+    if (!approx(abs(mult_total), 1.0))
+      die("multipliers for budget rule " rule_patterns[rule_idx] " do not sum to +/- 1.0")
   }
   if (nxt == "rule") {
     rule_idx++

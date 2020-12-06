@@ -1,0 +1,9 @@
+bal --budget
+              $80.00  Envelope
+              $30.00    Expenses
+              $45.00      Food
+             $-15.00      Medical
+              $25.00    Savings
+              $25.00    Spending
+--------------------
+               80.00
