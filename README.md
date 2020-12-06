@@ -4,6 +4,14 @@
 This is a watered down version of [the ledger cli](https://github.com/ledger/ledger) that focuses on a simple budgeting work-flow.
 The project started with some bash, SQLite and JavaScript utilities that I used with my ledger setup.
 I realized I could implement the ledger features I needed relatively quickly in AWK and customize it along the way.
+You should use this if
+
+  - You use ledger but only some of the features
+  - You want an interactive script for importing CSV transactions from your bank (after downloading manually)
+  - You want an automatic way to check your journal file for mistakes against your bank CSV
+  - You want a simple way to implement envelope budgeting
+  - You want a simple GUI for adjusting your budget
+  - You like the idea of tinkering with AWK scripts when things break or you want new features
 
 # Examples
 
@@ -142,10 +150,33 @@ Date  Expected  Actual
 
 This command reports a difference in daily totals which has caught all problems for me so far.
 
+The final noteworthy feature of this project is a simple GUI for building up a transaction that adjusts your budget.
+```
+$ ledger.bash mkbudget
+```
+
+This will open a browser with your current budget balance. The account highlighted in green is adjusted to a desired amount by typing the number and hitting enter.
+The difference is taken from the account highlighted in grey.
+Move the highlight up and down with j/k.
+Toggle moving the green/grey account with the space bar.
+The transaction that you can copy into your journal file is in the text box at the bottom.
+
 Other commands:
 
   - List transactions in CSV format
   - List accounts
   - List payees
   - Open SQLite database with transactions table (date, payee, account, amount).
+
+Note: ledger.bash finds the journal file through environment variables:
+
+  - `LEDGER_BASH_FILE` or
+  - `LEDGER_DIR` with `LEDGER_EXT`
+
+For example you could have
+
+  - `LEDGER_DIR=$HOME/Documents/finance`
+  - `LEDGER_EXT=dat`
+
+And name journal files by year `2020.dat`.
 
