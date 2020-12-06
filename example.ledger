@@ -1,0 +1,27 @@
+; Budget rules
+
+= ^Income
+  [Savings]                   -0.25
+  [Unbudgeted]                -0.75
+
+= ^Expenses
+  [$account]                  -1.0
+
+; Transactions
+
+2020/01/01 Salary
+  Assets:Bank:Checking        $500
+  Income
+
+2020/01/01 Adjust Budget
+  [Expenses:Food]             $100
+  [Expenses:Fun]              $50
+  [Unbudgeted]
+
+2020/01/01 Walmart
+  Expenses:Food               $50
+  Assets:Bank:Checking
+
+2020/02/01 AMC
+  Expenses:Fun                $20
+  Assets:Bank:Checking
