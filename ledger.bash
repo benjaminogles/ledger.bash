@@ -14,6 +14,7 @@ monthly=0
 yearly=0
 nopretty=0
 context=0
+empty=0
 accounts=""
 start_date=""
 end_date=""
@@ -122,7 +123,7 @@ bal_raw_report() {
 }
 
 bal_report() {
-  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth" -v nopretty=$nopretty -v context=$context
+  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v empty=$empty -v flat=$flat -v depth="$depth" -v nopretty=$nopretty -v context=$context
 }
 
 normalize_date() {
@@ -322,6 +323,7 @@ do
     --depth) depth="$2"; shift ;;
     --start) start_date="$2"; shift ;;
     --end) end_date="$2"; shift ;;
+    --empty) empty=1 ;;
     --no-total) nototal=1 ;;
     --no-pretty) nopretty=1 ;;
     *.csv) bank_csv="$1" ;;
