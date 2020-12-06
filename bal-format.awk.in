@@ -1,9 +1,10 @@
 
-NF == 4 {
-  account = $1
-  amount = $2
-  children = $3
-  descendants = $4
+NF == 5 {
+  ctx =$1
+  account = $2
+  amount = $3
+  children = $4
+  descendants = $5
 
   if (!amount && !empty)
     next
@@ -37,7 +38,7 @@ NF == 4 {
 
   flat_override = 0
 
-  printf "%20s%*s%s\n", (nopretty ? amount : pretty_dollars(amount)), 2 * indent, "", account
+  printf "%s%20s%*s%s\n", (context ? ctx : ""), (nopretty ? amount : pretty_dollars(amount)), 2 * indent, "", account
 }
 
 # total

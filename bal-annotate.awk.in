@@ -1,12 +1,13 @@
 
-NF == 2 {
+NF == 3 {
   ++idx
   inputs[idx, 1] = $1
   inputs[idx, 2] = $2
-  descendants[$1] = -1
-  children[$1] = 0
+  inputs[idx, 3] = $3
+  descendants[$2] = -1
+  children[$2] = 0
 
-  levels = split($1, accounts, /:/)
+  levels = split($2, accounts, /:/)
   for (i = 1; i <= levels; i++) {
     account = ""
     for (j = 1; j <= i; j++) {
@@ -24,9 +25,8 @@ NF == 2 {
 NF == 1 { total = $1 }
 
 END {
-  command = "sort"
   for (i = 1; i <= idx; i++)
-    print inputs[i, 1], inputs[i, 2], children[inputs[i, 1]], descendants[inputs[i, 1]]
+    print inputs[i, 1], inputs[i, 2], inputs[i, 3], children[inputs[i, 2]], descendants[inputs[i, 2]]
   print total
 }
 

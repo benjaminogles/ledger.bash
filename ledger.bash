@@ -10,7 +10,10 @@ depth=0
 budget=0
 plot=0
 nototal=0
+monthly=0
+yearly=0
 nopretty=0
+context=0
 accounts=""
 start_date=""
 end_date=""
@@ -115,11 +118,11 @@ transactions_report() {
 }
 
 bal_raw_report() {
-  default_transactions | awk -f bal.awk -F, -v nototal="$nototal"
+  default_transactions | awk -f bal.awk -F, -v nototal=$nototal -v monthly=$monthly -v yearly=$yearly
 }
 
 bal_report() {
-  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth" -v nopretty=$nopretty
+  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v flat=$flat -v depth="$depth" -v nopretty=$nopretty -v context=$context
 }
 
 normalize_date() {
@@ -134,29 +137,22 @@ normalize_date() {
   fi
 }
 
-monthly_bal_report_slow() {
+monthly_bal_report() {
   flat=1
   nototal=1
-  if [[ -z "$start_date" ]]
-  then
-    start_date=$(all_transactions | transactions_col 1 | head -n 1)
-  else
-    start_date="$(normalize_date "$start_date")"
-  fi
-  start_date=$(date -d "$start_date" +'%Y/%m/01')
-  outfile=$(fresh_file /tmp/month.dat)
-  report_results=$(fresh_file /tmp/monthly.dat)
-  echo "placeholder" > $outfile
-  while [[ -s $outfile ]]
-  do
-    end_date="$(date -d "$start_date +1months" +'%Y/%m/%d')"
-    disp_date="$(date -d "$start_date" +'%Y/%m')"
-    # TODO awk script that chunks months into separate files
-    # TODO or awk script that echos blank lines in between months and make bal_report handle those
-    bal_report | awk '{print $2, $1}' | sed "s|^|$disp_date |" | tee $outfile >> $report_results
-    start_date="$end_date"
-  done
-  sort -k 2,2 -k 1 $report_results
+  context=1
+  monthly=1
+  yearly=0
+  bal_report | awk '{ print $1, $3, $2 }' | sort -k 2,2 -k 1
+}
+
+yearly_bal_report() {
+  flat=1
+  nototal=1
+  context=1
+  monthly=0
+  yearly=1
+  bal_report | awk '{ print $1, $3, $2 }' | sort -k 2,2 -k 1
 }
 
 preprocess_bank_csv() {
@@ -363,7 +359,8 @@ case "$report" in
   accounts) accounts_report ;;
   payees) payees_report ;;
   bankcsv) preprocess_bank_csv "$bank_csv" ;;
-  monthly) monthly_bal_report_slow ;;
+  monthly) monthly_bal_report ;;
+  yearly) yearly_bal_report ;;
   *) usage
 esac
 
