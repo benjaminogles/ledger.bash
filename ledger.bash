@@ -228,60 +228,6 @@ select Date, Expected, Actual from (
   fi
 }
 
-import_one() {
-  local dt="$1"
-  local desc="$2"
-  local amt="$3"
-  echo ===============================================
-  echo "$dt, $desc, $amt"
-  if ! yes_no "Process?"
-  then
-    if ! yes_no "Confirm. Process?"
-    then
-      return
-    fi
-  fi
-
-  assign_payee_and_account "$dt" "$desc" "$amt" 
-  if [[ ! -z "$payee" ]] && [[ ! -z "$account" ]]
-  then
-    reply="$(confirm_payee_and_account)"
-  elif [[ -z "$payee" ]] && [[ ! -z "$account" ]]
-  then
-    reply="p"
-  elif [[ -z "$account" ]] && [[ ! -z "$payee" ]]
-  then
-    reply="a"
-  else
-    reply="n"
-  fi
-
-  while [[ ! -z "$reply" ]] && [[ ! "$reply" =~ y ]]
-  do
-    case "$reply" in
-      p) payee=$(pick_payee) ;;
-      a) account=$(pick_account) ;;
-      *) payee=$(pick_payee); account=$(pick_account) ;;
-    esac
-    reply="$(confirm_payee_and_account)"
-  done
-
-  case "$amt" in
-    -*) cat>>"$import_results"<<EOF
-$dt $payee
-    $account  \$${amt/-/}
-    $bank_account
-EOF
-    ;;
-    *) cat>>"$import_results"<<EOF
-$dt $payee
-    $bank_account  \$$amt
-    $account
-EOF
-    ;;
-  esac
-}
-
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   preprocess_bank_csv "$1" > $bank_transactions
@@ -289,7 +235,52 @@ import_bank_csv() {
   bank_account="$2"
   while IFS=, read dt desc amt
   do
-    import_one "$dt" "$desc" "$amt"
+    echo ===============================================
+    echo "$dt, $desc, $amt"
+    if ! yes_no "Process?"
+    then
+      if ! yes_no "Confirm. Process?"
+      then
+        return
+      fi
+    fi
+
+    assign_payee_and_account "$dt" "$desc" "$amt" 
+    if [[ ! -z "$payee" ]] && [[ ! -z "$account" ]]
+    then
+      reply="$(confirm_payee_and_account)"
+    elif [[ -z "$payee" ]] && [[ ! -z "$account" ]]
+    then
+      reply="p"
+    elif [[ -z "$account" ]] && [[ ! -z "$payee" ]]
+    then
+      reply="a"
+    fi
+
+    while [[ ! -z "$reply" ]] && [[ ! "$reply" =~ y ]]
+    do
+      case "$reply" in
+        p) payee=$(pick_payee) ;;
+        a) account=$(pick_account) ;;
+        *) payee=$(pick_payee); account=$(pick_account) ;;
+      esac
+      reply="$(confirm_payee_and_account)"
+    done
+
+    case "$amt" in
+      -*) cat>>"$import_results"<<EOF
+$dt $payee
+    $account  \$${amt/-/}
+    $bank_account
+EOF
+      ;;
+      *) cat>>"$import_results"<<EOF
+$dt $payee
+    $bank_account  \$$amt
+    $account
+EOF
+      ;;
+    esac
   done < $bank_transactions
 }
 
