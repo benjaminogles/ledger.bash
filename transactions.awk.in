@@ -64,7 +64,7 @@ BEGIN {
 }
 
 # comments
-/^ +;/ { next }
+/^ *;/ { next }
 
 # blank lines
 /^ *$/ { next }
