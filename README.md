@@ -117,6 +117,7 @@ assign_payee_and_account() {
     *)
       payee="$desc"
       account="Expenses:Misc"
+      ;;
   esac
 }
 $ export LEDGER_IMPORT_HELPER=ledger-import-helper.bash
