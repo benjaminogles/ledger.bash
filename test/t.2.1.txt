@@ -1,10 +1,8 @@
 bal
-             $-27.74  Assets
-             $-27.74    Bank
+             $-27.74  Assets:Bank
              $-13.31      Checking1
              $-14.43      Checking2
-              $27.74  Expenses
-              $27.74    Category
+              $27.74  Expenses:Category
               $13.31      Nested1
               $14.43      Nested2
 --------------------

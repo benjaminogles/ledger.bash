@@ -1,0 +1,5 @@
+bal --flat --depth 2
+              $-4.00  Assets
+               $4.00  Expenses
+--------------------
+                0.00

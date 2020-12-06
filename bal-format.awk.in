@@ -1,25 +1,22 @@
 
-NF == 5 {
+NF == 4 {
   ctx =$1
   account = $2
   amount = $3
   children = $4
-  descendants = $5
 
   if (!amount && !empty)
     next
-  if (flat && !depth && descendants != 0)
-    next
+
   levels = split(account, accounts, /:/)
+
+  if (flat && children > 0 && (!depth || levels < depth))
+    next
+
   if (depth && levels > depth)
     next
-  if (flat && depth && levels < depth)
-    next
-  if (depth && depth == levels + 1 && children == 1) {
-    flat_override++
-    next
-  }
-  if (depth != levels && descendants == 1) {
+
+  if (children == 1 && levels != depth) {
     flat_override++
     next
   }
