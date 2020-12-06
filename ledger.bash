@@ -283,21 +283,45 @@ EOF
   done < $bank_transactions
 }
 
+make_budget_transaction() {
+  echo 'var accounts = {' > budget-gui/accounts.js
+  flat=1
+  nototal=1
+  budget=1
+  empty=1
+  bal_report | \
+    tr -d "$," | \
+    awk '{print "\"" $2 "\":" $1 ","}' >> \
+    budget-gui/accounts.js
+  echo '}' >> budget-gui/accounts.js
+
+  python3 -m http.server --bind 127.0.0.1 --directory budget-gui &
+  server_pid=$!
+  xdg-open "http://127.0.0.1:8000"
+  read -p "Enter when done..." ignored
+  kill -9 $server_pid
+}
+
 usage() {
   echo "Usage: $0 <command> [options] <arguments>"
   echo "Commands"
-  echo "  bal <accounts> Report account balances"
-  echo "  csv <accounts> Report transactions in csv format"
-  echo "  accounts       Report list of accounts"
-  echo "  payees         Report list of payees"
-  echo "  db <accounts>  Open SQLite database of transactions"
-  echo "  import <file>  Import bank transactions from csv file"
-  echo "  check <file>   Validate bank transactions from csv file are recorded correctly"
+  echo "  bal <accounts>     Report account balances"
+  echo "  monthly <accounts> Report account balances by month"
+  echo "  yearly <accounts>  Report account balances by year"
+  echo "  csv <accounts>     Report transactions in csv format"
+  echo "  accounts           Report list of accounts"
+  echo "  payees             Report list of payees"
+  echo "  db <accounts>      Open SQLite database of transactions"
+  echo "  import <file>      Import bank transactions from csv file"
+  echo "  check <file>       Validate bank transactions from csv file are recorded correctly"
   echo "Options"
-  echo "  --flat         Flatten account tree in bal report"
-  echo "  --depth <num>  Limit depth of account tree in bal report"
-  echo "  --budget       Print budget accounts"
-  echo "  --plot         Plot report"
+  echo "  --flat             Flatten account tree in bal report"
+  echo "  --depth <num>      Limit depth of account tree in bal report"
+  echo "  --start            Start date %Y/%m/%d month and day are optional"
+  echo "  --end              Start date %Y/%m/%d month and day are optional"
+  echo "  --empty            Include empty accounts in bal report"
+  echo "  --no-total         Don't print total in bal report"
+  echo "  --budget           Print budget accounts"
   exit 1
 }
 
@@ -350,6 +374,7 @@ case "$report" in
   bankcsv) preprocess_bank_csv "$bank_csv" ;;
   monthly) monthly_bal_report ;;
   yearly) yearly_bal_report ;;
+  mkbudget) make_budget_transaction ;;
   *) usage
 esac
 
