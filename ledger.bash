@@ -334,9 +334,9 @@ then
   ledger_file="$LEDGER_BASH_FILE"
 else
   ledger_dir=${LEDGER_DIR:-$HOME/Documents/finance}
-  ledger_ext=${LEDGER_EXT:-.in}
+  ledger_ext=${LEDGER_EXT:-in}
   ledger_file=$(fresh_file /tmp/ledger.dat)
-  find "$ledger_dir" -name "*$ledger_ext" -exec cat '{}' > $ledger_file \;
+  cat "$ledger_dir"/*."$ledger_ext" > $ledger_file
 fi
 
 case "$report" in
