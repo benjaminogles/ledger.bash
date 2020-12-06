@@ -291,7 +291,6 @@ import_bank_csv() {
   do
     import_one "$dt" "$desc" "$amt"
   done < $bank_transactions
-  check_bank_csv "$1"
 }
 
 usage() {
