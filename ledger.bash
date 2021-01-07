@@ -222,7 +222,7 @@ select Date, Expected, Actual from (
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   bank_account="$2"
-  preprocess_bank_csv "$1" "$bank_account" > $bank_transactions
+  preprocess_bank_csv "$1" "$bank_account" "$3" > $bank_transactions
   import_results=ledger-imported.dat
   if [[ -f "$import_results" ]]
   then
@@ -365,7 +365,8 @@ case "$report" in
   rawcsv) default_transactions ;;
   db) sqlite3 $(create_sqlite_db) ;;
   bankdb) sqlite3 $(bank_sqlite_db "$bank_csv" "${accounts:-$(pick_account)}") ;;
-  import) import_bank_csv "$bank_csv" $(pick_account) ;;
+  import) import_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
+  importall) import_bank_csv "$bank_csv" ${accounts:-$(pick_account)} 0 ;;
   check) check_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
