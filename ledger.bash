@@ -254,6 +254,8 @@ import_bank_csv() {
     elif [[ -z "$account" ]] && [[ ! -z "$payee" ]]
     then
       reply="a"
+    else
+      reply="n"
     fi
 
     while [[ ! -z "$reply" ]] && [[ ! "$reply" =~ y ]]
