@@ -163,14 +163,6 @@ preprocess_bank_csv() {
 fresh_file() {
   if [[ -f "$1" ]]
   then
-    if [[ $2 -eq 1 ]]
-    then
-      read -p "$1 exists, ok to replace?"
-      if [[ "$REPLY" =~ n ]]
-      then
-        exit_with_error "$1 already exists"
-      fi
-    fi
     rm "$1"
   fi
   echo "$1"
@@ -230,7 +222,11 @@ select Date, Expected, Actual from (
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   preprocess_bank_csv "$1" > $bank_transactions
-  import_results=$(fresh_file ledger-imported.dat 1)
+  import_results=ledger-imported.dat
+  if [[ -f "$import_results" ]]
+  then
+    exit_with_error "$import_results already exists"
+  fi
   bank_account="$2"
   while IFS=, read dt desc amt
   do
