@@ -114,8 +114,8 @@ const set_register = (s) => {
 const output_header = () => {
   const d = new Date()
   const year = d.getFullYear().toString()
-  const month = (d.getMonth() + 1).toString()
-  const day = d.getDate().toString()
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const day = d.getDate().toString().padStart(2, '0')
   return year + '/' + month + '/' + day + ' Budget'
 }
 
