@@ -72,7 +72,7 @@ transactions_raw_report() {
 }
 
 all_transactions() {
-  transactions_raw_report 0 0 "" "" ""
+  transactions_raw_report 0 "" "" ""
 }
 
 default_transactions() {
@@ -156,8 +156,8 @@ yearly_bal_report() {
 }
 
 preprocess_bank_csv() {
-  thresh=$(all_transactions | transactions_col 1 | tail -n 1)
-  awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${2:-$thresh}" "$1"
+  thresh=$(transactions_raw_report 0 "$2" "" "" | transactions_col 1 | tail -n 1)
+  awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${3:-$thresh}" "$1"
 }
 
 fresh_file() {
@@ -182,7 +182,7 @@ create_sqlite_db() {
 bank_sqlite_db() {
   db=$(create_sqlite_db)
   bank_transactions=$(fresh_file /tmp/bank.csv)
-  preprocess_bank_csv "$1" 0 > $bank_transactions
+  preprocess_bank_csv "$1" "$2" 0 > $bank_transactions
   sqlite3 $db <<< "
 create table bank_transactions (date text not null, description text not null, amount text not null);
 .separator ,
@@ -192,8 +192,8 @@ echo $db
 }
 
 check_bank_csv() {
-  db=$(bank_sqlite_db "$1")
   bank_account="$2"
+  db=$(bank_sqlite_db "$1" "$bank_account")
   problems=$(fresh_file /tmp/ledger.problems)
   sqlite3 $db <<< "
 create table combined (date text not null, amount real not null);
@@ -221,13 +221,13 @@ select Date, Expected, Actual from (
 
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
-  preprocess_bank_csv "$1" > $bank_transactions
+  bank_account="$2"
+  preprocess_bank_csv "$1" "$bank_account" > $bank_transactions
   import_results=ledger-imported.dat
   if [[ -f "$import_results" ]]
   then
     exit_with_error "$import_results already exists"
   fi
-  bank_account="$2"
   while IFS=, read dt desc amt
   do
     echo ===============================================
@@ -364,12 +364,12 @@ case "$report" in
   csv) transactions_report ;;
   rawcsv) default_transactions ;;
   db) sqlite3 $(create_sqlite_db) ;;
-  bankdb) sqlite3 $(bank_sqlite_db "$bank_csv") ;;
+  bankdb) sqlite3 $(bank_sqlite_db "$bank_csv" "${accounts:-$(pick_account)}") ;;
   import) import_bank_csv "$bank_csv" $(pick_account) ;;
   check) check_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
-  bankcsv) preprocess_bank_csv "$bank_csv" ;;
+  bankcsv) preprocess_bank_csv "$bank_csv" "${accounts:-$(pick_account)}" ;;
   monthly) monthly_bal_report ;;
   yearly) yearly_bal_report ;;
   mkbudget) make_budget_transaction ;;
