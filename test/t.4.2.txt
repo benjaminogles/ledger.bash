@@ -1,2 +1,2 @@
-bankcsv test/t.4.csv
+wellsfargocsv test/t.4.csv Assets
 2019/01/05,Description,-1.00

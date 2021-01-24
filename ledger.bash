@@ -67,16 +67,16 @@ pick() {
   echo "$picked"
 }
 
-transactions_raw_report() {
-  awk -f transactions.awk -v OFS=, -v budget="$1" -v filter="$2" -v start="$3" -v end="$4" "$ledger_file" | sort -k 1 -t ,
+transactions_raw() {
+  awk -f transactions.awk -v OFS=, -v filter="$1" -v start="$2" -v end="$3" -v budget="$4" "$ledger_file" | sort -k 1 -t ,
 }
 
 all_transactions() {
-  transactions_raw_report 0 "" "" ""
+  transactions_raw "" "" "" 0
 }
 
 default_transactions() {
-  transactions_raw_report $budget "$accounts" "$(normalize_date "$start_date")" "$(normalize_date "$end_date")"
+  transactions_raw "$accounts" "$start_date" "$end_date" $budget
 }
 
 transactions_col() {
@@ -117,12 +117,36 @@ transactions_report() {
   default_transactions | awk -f cents-to-dollars.awk -F, -v OFS=, -v col=4
 }
 
-bal_raw_report() {
-  default_transactions | awk -f bal.awk -F, -v nototal=$nototal -v monthly=$monthly -v yearly=$yearly
+bal_raw() {
+  awk -f bal.awk -F, -v monthly="$1" -v yearly="$2" -v nototal="$3"
+}
+
+default_bal() {
+  bal_raw $monthly $yearly $nototal
+}
+
+monthly_bal() {
+  bal_raw 1 0 1
+}
+
+yearly_bal() {
+  bal_raw 0 1 1
+}
+
+bal_format_raw() {
+  awk -f bal-annotate.awk | awk -f bal-format.awk -v depth="$1" -v flat="$2" -v empty="$3" -v context="$4" -v nopretty="$5"
+}
+
+default_bal_format() {
+  bal_format_raw "$depth" $flat $empty $context $nopretty
+}
+
+monthly_yearly_bal_format() {
+  bal_format_raw "$depth" 1 $empty 1 $nopretty | awk '{ print $1, $3, $2 }' | sort -k 2,2 -k 1
 }
 
 bal_report() {
-  bal_raw_report | awk -f bal-annotate.awk | awk -f bal-format.awk -v empty=$empty -v flat=$flat -v depth="$depth" -v nopretty=$nopretty -v context=$context
+  default_transactions | default_bal | default_bal_format
 }
 
 normalize_date() {
@@ -138,27 +162,27 @@ normalize_date() {
 }
 
 monthly_bal_report() {
-  flat=1
-  nototal=1
-  context=1
-  monthly=1
-  yearly=0
-  bal_report | awk '{ print $1, $3, $2 }' | sort -k 2,2 -k 1
+  default_transactions | monthly_bal | monthly_yearly_bal_format
 }
 
 yearly_bal_report() {
-  flat=1
-  nototal=1
-  context=1
-  monthly=0
-  yearly=1
-  bal_report | awk '{ print $1, $3, $2 }' | sort -k 2,2 -k 1
+  default_transactions | yearly_bal | monthly_yearly_bal_format
+}
+
+last_account_date() {
+  echo "$(normalize_date "$(transactions_raw "$1" "" "" 0 | transactions_col 1 | tail -n 1)")"
 }
 
 preprocess_bank_csv() {
-  thresh=$(transactions_raw_report 0 "$2" "" "" | transactions_col 1 | tail -n 1)
-  # awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v header=0 -v after="${3:-$thresh}" "$1"
-  awk -f bank-csv.awk -v date_col=2 -v description_col=3 -v amount_col=4 -v unquote=0 -v header=1 -v after="${3:-$thresh}" "$1"
+  awk -f bank-csv.awk -v unquote="$1" -v header="$2" -v date_col="$3" -v description_col="$4" -v amount_col="$5" -v after="$6" "$bank_csv"
+}
+
+preprocess_chase_csv() {
+  preprocess_bank_csv 0 1 2 3 4 "$1"
+}
+
+preprocess_wells_fargo_csv() {
+  preprocess_bank_csv 1 0 1 5 2 "$1"
 }
 
 fresh_file() {
@@ -183,7 +207,7 @@ create_sqlite_db() {
 bank_sqlite_db() {
   db=$(create_sqlite_db)
   bank_transactions=$(fresh_file /tmp/bank.csv)
-  preprocess_bank_csv "$1" "$2" 0 > $bank_transactions
+  preprocess_"$1"_csv 0 > $bank_transactions
   sqlite3 $db <<< "
 create table bank_transactions (date text not null, description text not null, amount text not null);
 .separator ,
@@ -193,8 +217,8 @@ echo $db
 }
 
 check_bank_csv() {
+  db=$(bank_sqlite_db "$1")
   bank_account="$2"
-  db=$(bank_sqlite_db "$1" "$bank_account")
   problems=$(fresh_file /tmp/ledger.problems)
   sqlite3 $db <<< "
 create table combined (date text not null, amount real not null);
@@ -223,7 +247,7 @@ select Date, Expected, Actual from (
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   bank_account="$2"
-  preprocess_bank_csv "$1" "$bank_account" "$3" > $bank_transactions
+  preprocess_"$1"_csv "$3" > $bank_transactions
   import_results=ledger-imported.dat
   if [[ -f "$import_results" ]]
   then
@@ -284,14 +308,9 @@ EOF
 
 make_budget_transaction() {
   echo 'var accounts = {' > budget-gui/accounts.js
-  flat=1
-  nototal=1
-  budget=1
-  empty=1
-  bal_report | \
+  transactions_raw "" "" "" 1 | bal_raw 0 0 1 | bal_format_raw "" 1 1 0 1 | \
     tr -d "$," | \
-    awk '{print "\"" $2 "\":" $1 ","}' >> \
-    budget-gui/accounts.js
+    awk '{print "\"" $2 "\":" $1 ","}' >> budget-gui/accounts.js
   echo '}' >> budget-gui/accounts.js
 
   python3 -m http.server --bind 127.0.0.1 --directory budget-gui &
@@ -331,8 +350,8 @@ do
     --budget) budget=1 ;;
     --plot) plot=1 ;;
     --depth) depth="$2"; shift ;;
-    --start) start_date="$2"; shift ;;
-    --end) end_date="$2"; shift ;;
+    --start) start_date="$(normalize_date $2)"; shift ;;
+    --end) end_date="$(normalize_date $2)"; shift ;;
     --empty) empty=1 ;;
     --no-total) nototal=1 ;;
     --no-pretty) nopretty=1 ;;
@@ -361,17 +380,22 @@ fi
 
 case "$report" in
   bal) bal_report ;;
-  rawbal) bal_raw_report ;;
+  rawbal) default_transactions | default_bal ;;
   csv) transactions_report ;;
   rawcsv) default_transactions ;;
   db) sqlite3 $(create_sqlite_db) ;;
-  bankdb) sqlite3 $(bank_sqlite_db "$bank_csv" "${accounts:-$(pick_account)}") ;;
-  import) import_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
-  importall) import_bank_csv "$bank_csv" ${accounts:-$(pick_account)} 0 ;;
-  check) check_bank_csv "$bank_csv" ${accounts:-$(pick_account)} ;;
+  chasedb) sqlite3 $(bank_sqlite_db chase) ;;
+  wellsfargodb) sqlite3 $(bank_sqlite_db wells_fargo) ;;
+  importchase) import_bank_csv chase ${accounts:-$(pick_account)} $(last_account_date) ;;
+  importwellsfargo) import_bank_csv wells_fargo ${accounts:-$(pick_account)} $(last_account_date) ;;
+  importchaseall) import_bank_csv chase ${accounts:-$(pick_account)} 0 ;;
+  importwellsfargoall) import_bank_csv wells_fargo ${accounts:-$(pick_account)} 0 ;;
+  checkchase) check_bank_csv chase ${accounts:-$(pick_account)} ;;
+  checkwellsfargo) check_bank_csv wells_fargo ${accounts:-$(pick_account)} ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
-  bankcsv) preprocess_bank_csv "$bank_csv" "${accounts:-$(pick_account)}" ;;
+  chasecsv) preprocess_chase_csv $(last_account_date ${accounts:-$(pick_account)}) ;;
+  wellsfargocsv) preprocess_wells_fargo_csv $(last_account_date ${accounts:-$(pick_account)}) ;;
   monthly) monthly_bal_report ;;
   yearly) yearly_bal_report ;;
   mkbudget) make_budget_transaction ;;
