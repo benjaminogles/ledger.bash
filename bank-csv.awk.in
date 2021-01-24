@@ -29,6 +29,8 @@ BEGIN {
   after = int(after)
 }
 
+header && FNR == 1 { next }
+
 NF >= 4 {
   date_cmd = "date -d '" maybe_unquote(date_col) "' '+%Y/%m/%d'"
   date_cmd | getline date

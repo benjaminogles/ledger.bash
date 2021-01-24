@@ -157,7 +157,8 @@ yearly_bal_report() {
 
 preprocess_bank_csv() {
   thresh=$(transactions_raw_report 0 "$2" "" "" | transactions_col 1 | tail -n 1)
-  awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v after="${3:-$thresh}" "$1"
+  # awk -f bank-csv.awk -v date_col=1 -v description_col=5 -v amount_col=2 -v unquote=1 -v header=0 -v after="${3:-$thresh}" "$1"
+  awk -f bank-csv.awk -v date_col=2 -v description_col=3 -v amount_col=4 -v unquote=0 -v header=1 -v after="${3:-$thresh}" "$1"
 }
 
 fresh_file() {
@@ -236,7 +237,7 @@ import_bank_csv() {
     then
       if ! yes_no "Confirm. Process?"
       then
-        return
+        continue
       fi
     fi
 
