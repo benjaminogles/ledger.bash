@@ -185,6 +185,10 @@ preprocess_wells_fargo_csv() {
   preprocess_bank_csv 1 0 1 5 2 "$1"
 }
 
+preprocess_chase_credit_csv() {
+  preprocess_bank_csv 0 1 2 3 6 "$1"
+}
+
 fresh_file() {
   if [[ -f "$1" ]]
   then
@@ -379,6 +383,16 @@ else
 fi
 
 case "$report" in
+  import*) ;&
+  check*) ;&
+  *csv)
+    if [[ -z "$accounts" ]]
+    then
+      accounts=$(pick_account)
+    fi ;;
+esac
+
+case "$report" in
   bal) bal_report ;;
   rawbal) default_transactions | default_bal ;;
   csv) transactions_report ;;
@@ -386,16 +400,18 @@ case "$report" in
   db) sqlite3 $(create_sqlite_db) ;;
   chasedb) sqlite3 $(bank_sqlite_db chase) ;;
   wellsfargodb) sqlite3 $(bank_sqlite_db wells_fargo) ;;
-  importchase) import_bank_csv chase ${accounts:-$(pick_account)} $(last_account_date) ;;
-  importwellsfargo) import_bank_csv wells_fargo ${accounts:-$(pick_account)} $(last_account_date) ;;
-  importchaseall) import_bank_csv chase ${accounts:-$(pick_account)} 0 ;;
-  importwellsfargoall) import_bank_csv wells_fargo ${accounts:-$(pick_account)} 0 ;;
-  checkchase) check_bank_csv chase ${accounts:-$(pick_account)} ;;
-  checkwellsfargo) check_bank_csv wells_fargo ${accounts:-$(pick_account)} ;;
+  importchase) import_bank_csv chase "$accounts" $(last_account_date "$accounts") ;;
+  importchasecredit) import_bank_csv chase_credit "$accounts" $(last_account_date "$accounts") ;;
+  importwellsfargo) import_bank_csv wells_fargo "$accounts" $(last_account_date "$accounts") ;;
+  importchaseall) import_bank_csv chase "$accounts" 0 ;;
+  importwellsfargoall) import_bank_csv wells_fargo "$accounts" 0 ;;
+  importchasecreditall) import_bank_csv chase_credit "$accounts" 0 ;;
+  checkchase) check_bank_csv chase "$accounts" ;;
+  checkwellsfargo) check_bank_csv wells_fargo "$accounts" ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
-  chasecsv) preprocess_chase_csv $(last_account_date ${accounts:-$(pick_account)}) ;;
-  wellsfargocsv) preprocess_wells_fargo_csv $(last_account_date ${accounts:-$(pick_account)}) ;;
+  chasecsv) preprocess_chase_csv $(last_account_date "$accounts") ;;
+  wellsfargocsv) preprocess_wells_fargo_csv $(last_account_date "$accounts") ;;
   monthly) monthly_bal_report ;;
   yearly) yearly_bal_report ;;
   mkbudget) make_budget_transaction ;;
