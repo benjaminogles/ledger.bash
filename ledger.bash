@@ -252,11 +252,7 @@ import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   bank_account="$2"
   preprocess_"$1"_csv "$3" > $bank_transactions
-  import_results=ledger-imported.dat
-  if [[ -f "$import_results" ]]
-  then
-    exit_with_error "$import_results already exists"
-  fi
+  import_results="$(fresh_file "$1-imported.dat")"
   while IFS=, read dt desc amt
   do
     echo ===============================================
