@@ -384,8 +384,7 @@ fi
 
 case "$report" in
   import*) ;&
-  check*) ;&
-  *csv)
+  check*)
     if [[ -z "$accounts" ]]
     then
       accounts=$(pick_account)
