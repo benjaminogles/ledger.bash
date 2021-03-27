@@ -340,6 +340,7 @@ usage() {
   echo "  --empty            Include empty accounts in bal report"
   echo "  --no-total         Don't print total in bal report"
   echo "  --budget           Print budget accounts"
+  echo "  --parse-bank <arg> One of [chase chase_credit wells_fargo]"
   exit 1
 }
 
@@ -352,6 +353,7 @@ do
     --depth) depth="$2"; shift ;;
     --start) start_date="$(normalize_date $2)"; shift ;;
     --end) end_date="$(normalize_date $2)"; shift ;;
+    --parse-bank) format="$2"; shift ;;
     --empty) empty=1 ;;
     --no-total) nototal=1 ;;
     --no-pretty) nopretty=1 ;;
@@ -378,14 +380,18 @@ else
   cat "$ledger_dir"/*."$ledger_ext" > $ledger_file
 fi
 
-case "$report" in
-  import*) ;&
-  check*)
+if [[ ! -z "$bank_csv" ]]
+then
+    if [[ -z "$format" ]]
+    then
+      echo "Use --parse-bank to choose one of [chase chase_credit wells_fargo]"
+      exit 1
+    fi
     if [[ -z "$accounts" ]]
     then
       accounts=$(pick_account)
-    fi ;;
-esac
+    fi
+fi
 
 case "$report" in
   bal) bal_report ;;
@@ -393,20 +399,13 @@ case "$report" in
   csv) transactions_report ;;
   rawcsv) default_transactions ;;
   db) sqlite3 $(create_sqlite_db) ;;
-  chasedb) sqlite3 $(bank_sqlite_db chase) ;;
-  wellsfargodb) sqlite3 $(bank_sqlite_db wells_fargo) ;;
-  importchase) import_bank_csv chase "$accounts" $(last_account_date "$accounts") ;;
-  importchasecredit) import_bank_csv chase_credit "$accounts" $(last_account_date "$accounts") ;;
-  importwellsfargo) import_bank_csv wells_fargo "$accounts" $(last_account_date "$accounts") ;;
-  importchaseall) import_bank_csv chase "$accounts" 0 ;;
-  importwellsfargoall) import_bank_csv wells_fargo "$accounts" 0 ;;
-  importchasecreditall) import_bank_csv chase_credit "$accounts" 0 ;;
-  checkchase) check_bank_csv chase "$accounts" ;;
-  checkwellsfargo) check_bank_csv wells_fargo "$accounts" ;;
+  bankdb) sqlite3 $(bank_sqlite_db "$format") ;;
+  import) import_bank_csv "$format" "$accounts" $(last_account_date "$accounts") ;;
+  importall) import_bank_csv "$format" "$accounts" 0 ;;
+  check) check_bank_csv "$format" "$accounts" ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
-  chasecsv) preprocess_chase_csv $(last_account_date "$accounts") ;;
-  wellsfargocsv) preprocess_wells_fargo_csv $(last_account_date "$accounts") ;;
+  bankcsv) preprocess_"$format"_csv $(last_account_date "$accounts") ;;
   monthly) monthly_bal_report ;;
   yearly) yearly_bal_report ;;
   mkbudget) make_budget_transaction ;;

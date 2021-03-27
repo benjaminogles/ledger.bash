@@ -1,4 +1,4 @@
-checkwellsfargo test/t.4.csv Assets
+check --parse-bank wells_fargo test/t.4.csv Assets 
 Potential problems with Assets
 Date        Expected  Actual
 2019/01/01  -1.0      
