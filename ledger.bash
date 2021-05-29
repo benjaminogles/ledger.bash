@@ -23,12 +23,12 @@ bank_csv=""
 import_results=""
 ledger_file=""
 
-if ! declare -f assign_payee_and_account > /dev/null
+if ! declare -f assign_payee_and_account > /dev/null || ! declare -f assign_accounts_and_format > /dev/null
 then
-  assign_payee_and_account_src="${LEDGER_IMPORT_HELPER:-$HOME/.local/share/ledger/import_helper.bash}"
-  if [[ -f "$assign_payee_and_account_src" ]]
+  import_helper_src="${LEDGER_IMPORT_HELPER:-$HOME/.local/share/ledger/import_helper.bash}"
+  if [[ -f "$import_helper_src" ]]
   then
-    source "$assign_payee_and_account_src"
+    source "$import_helper_src"
   fi
 fi
 if ! declare -f assign_payee_and_account > /dev/null
@@ -37,6 +37,13 @@ then
   assign_payee_and_account() {
     payee=""
     account=""
+  }
+fi
+if ! declare -f assign_accounts_and_format > /dev/null
+then
+  echo "using default (no-op) assign_accounts_and_format function"
+  assign_accounts_and_format() {
+    format=""
   }
 fi
 
@@ -384,10 +391,14 @@ fi
 
 if [[ ! -z "$bank_csv" ]]
 then
-    if [[ -z "$format" ]]
+    if [[ -z "$format" ]] || [[ -z "$accounts" ]]
     then
-      echo "Use --parse-bank to choose one of [chase chase_credit wells_fargo]"
-      exit 1
+      assign_accounts_and_format "$bank_csv"
+      if [[ -z "$format" ]]
+      then
+        echo "Unknown file format --parse-bank to choose one of [chase chase_credit wells_fargo]"
+        exit 1
+      fi
     fi
     if [[ -z "$accounts" ]]
     then
