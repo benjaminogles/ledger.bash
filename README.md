@@ -8,7 +8,6 @@ You should use this if
 
   - You use ledger but only some of the features
   - You want an interactive script for importing CSV transactions from your bank (after downloading manually)
-  - You want an automatic way to check your journal file for mistakes against your bank CSV
   - You want a simple way to implement envelope budgeting
   - You want a simple GUI for adjusting your budget
   - You like the idea of tinkering with AWK scripts when things break or you want new features
@@ -139,16 +138,6 @@ It just needs to know whether the fields are quoted and which fields hold the da
 
 When importing a CSV, you don't need to worry about selecting a date range.
 Import will start after the last date in your journal file.
-You can also check for consistency with your bank record after importing.
-
-```
-$ ledger.bash check Checking.csv Assets:Bank:Checking
-Potential problems with Assets:Bank:Checking
-Date  Expected  Actual
-...
-```
-
-This command reports a difference in daily totals which has caught all problems for me so far.
 
 The final noteworthy feature of this project is a simple GUI for building up a transaction that adjusts your budget.
 ```

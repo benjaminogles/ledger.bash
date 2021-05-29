@@ -1,6 +1,2 @@
-check --parse-bank wells_fargo test/t.4.csv Assets 
-Potential problems with Assets
-Date        Expected  Actual
-2019/01/01  -1.0      
-2019/01/03  -1.0      -2.0
-2019/01/05  -1.0      
+bankcsv --parse-bank wells_fargo test/t.4.csv Assets
+2019/01/05,Description,-1.00

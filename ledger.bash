@@ -229,34 +229,6 @@ create table bank_transactions (date text not null, description text not null, a
 echo $db
 }
 
-check_bank_csv() {
-  db=$(bank_sqlite_db "$1")
-  bank_account="$2"
-  problems=$(fresh_file /tmp/ledger.problems)
-  sqlite3 $db <<< "
-create table combined (date text not null, amount real not null);
-create table bank_combined (date text not null, amount real not null);
-insert into combined select date, sum(cast(amount as real)) from transactions where account = '$bank_account' group by date;
-insert into bank_combined select date, sum(cast(amount as real)) from bank_transactions group by date;
-.mode csv
-.output $problems
-.headers on
-select Date, Expected, Actual from (
-  select
-    b.date as Date,
-    b.amount as Expected,
-    case t.amount when null then 0 else t.amount end as Actual
-  from bank_combined b left outer join combined t on b.date = t.date
-  where abs(b.amount - t.amount) > .01 or t.date is null
-  );
-"
-  if [[ -s $problems ]]
-  then
-    echo Potential problems with $bank_account
-    cat $problems | column -t -s,
-  fi
-}
-
 import_bank_csv() {
   bank_transactions=$(fresh_file /tmp/bank.csv)
   bank_account="$2"
@@ -340,7 +312,6 @@ usage() {
   echo "  payees             Report list of payees"
   echo "  db <accounts>      Open SQLite database of transactions"
   echo "  import <file>      Import bank transactions from csv file"
-  echo "  check <file>       Validate bank transactions from csv file are recorded correctly"
   echo "Options"
   echo "  --flat             Flatten account tree in bal report"
   echo "  --depth <num>      Limit depth of account tree in bal report"
@@ -415,7 +386,6 @@ case "$report" in
   bankdb) sqlite3 $(bank_sqlite_db "$format") ;;
   import) import_bank_csv "$format" "$accounts" $(last_account_date "$accounts") ;;
   importall) import_bank_csv "$format" "$accounts" 0 ;;
-  check) check_bank_csv "$format" "$accounts" ;;
   accounts) accounts_report ;;
   payees) payees_report ;;
   bankcsv) preprocess_"$format"_csv $(last_account_date "$accounts") ;;

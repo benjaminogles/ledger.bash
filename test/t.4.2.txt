@@ -1,2 +1,0 @@
-bankcsv --parse-bank wells_fargo test/t.4.csv Assets
-2019/01/05,Description,-1.00
