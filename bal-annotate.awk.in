@@ -6,18 +6,9 @@ NF == 3 {
   inputs[idx, 3] = $3
   children[$2] = 0
 
-  levels = split($2, accounts, /:/)
-  for (i = 1; i <= levels; i++) {
-    account = ""
-    for (j = 1; j <= i; j++) {
-      if (account) {
-        account = account ":"
-      }
-      account = account accounts[j]
-    }
-    if (i == levels - 1)
-      children[account]++
-  }
+  leaf = match($2, /:[^:]*$/)
+  parent = substr($2, 1, leaf-1)
+  children[parent]++
 }
 
 NF == 1 { total = $1 }
