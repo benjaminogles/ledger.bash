@@ -1,5 +1,7 @@
 #!/bin/bash
 
+LEDGER_AWK="awk -f utils.awk"
+
 shopt -s nocasematch
 
 report="$1"
@@ -68,7 +70,7 @@ pick() {
 }
 
 transactions_raw() {
-  awk -f transactions.awk -v OFS=, -v filter="$1" -v start="$2" -v end="$3" -v budget="$4" "$ledger_file" | sort -k 1 -t ,
+  $LEDGER_AWK -f transactions.awk -v OFS=, -v filter="$1" -v start="$2" -v end="$3" -v budget="$4" "$ledger_file" | sort -k 1 -t ,
 }
 
 all_transactions() {
@@ -114,11 +116,11 @@ confirm_payee_and_account() {
 }
 
 transactions_report() {
-  default_transactions | awk -f cents-to-dollars.awk -F, -v OFS=, -v col=4
+  default_transactions | $LEDGER_AWK -f cents-to-dollars.awk -F, -v OFS=, -v col=4
 }
 
 bal_raw() {
-  awk -f bal.awk -F, -v monthly="$1" -v yearly="$2" -v nototal="$3"
+  $LEDGER_AWK -f bal.awk -F, -v monthly="$1" -v yearly="$2" -v nototal="$3"
 }
 
 default_bal() {
@@ -134,7 +136,7 @@ yearly_bal() {
 }
 
 bal_format_raw() {
-  awk -f bal-annotate.awk | awk -f bal-format.awk -v depth="$1" -v flat="$2" -v empty="$3" -v context="$4" -v nopretty="$5"
+  $LEDGER_AWK -f bal-annotate.awk | $LEDGER_AWK -f bal-format.awk -v depth="$1" -v flat="$2" -v empty="$3" -v context="$4" -v nopretty="$5"
 }
 
 default_bal_format() {
@@ -174,7 +176,7 @@ last_account_date() {
 }
 
 preprocess_bank_csv() {
-  awk -f bank-csv.awk -v unquote="$1" -v header="$2" -v date_col="$3" -v description_col="$4" -v amount_col="$5" -v after="$6" "$bank_csv"
+  $LEDGER_AWK -f bank-csv.awk -v unquote="$1" -v header="$2" -v date_col="$3" -v description_col="$4" -v amount_col="$5" -v after="$6" "$bank_csv"
 }
 
 preprocess_chase_csv() {
