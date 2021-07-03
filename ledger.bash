@@ -43,6 +43,7 @@ if ! declare -f assign_accounts_and_format > /dev/null
 then
   echo "using default (no-op) assign_accounts_and_format function"
   assign_accounts_and_format() {
+    accounts=""
     format=""
   }
 fi
