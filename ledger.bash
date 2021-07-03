@@ -25,7 +25,7 @@ ledger_file=""
 
 if ! declare -f assign_payee_and_account > /dev/null || ! declare -f assign_accounts_and_format > /dev/null
 then
-  import_helper_src="${LEDGER_IMPORT_HELPER:-$HOME/.local/share/ledger/import_helper.bash}"
+  import_helper_src="${LEDGER_IMPORT_HELPER:-$HOME/.local/share/ledger/import-helper.bash}"
   if [[ -f "$import_helper_src" ]]
   then
     source "$import_helper_src"
